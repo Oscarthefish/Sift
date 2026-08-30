@@ -8,6 +8,7 @@ export interface SiftRepository {
   updateTransaction(item: Transaction): Promise<void>;
   listRules(): Promise<MerchantRule[]>;
   saveRule(rule: MerchantRule): Promise<void>;
+  deleteRule(id: string): Promise<void>;
 }
 
 const TRANSACTIONS_KEY = "sift.dev.transactions";
@@ -30,6 +31,10 @@ const browserRepository: SiftRepository = {
     const current = await this.listRules();
     localStorage.setItem(RULES_KEY, JSON.stringify([...current.filter((item) => item.id !== rule.id), rule]));
   },
+  async deleteRule(id) {
+    const current = await this.listRules();
+    localStorage.setItem(RULES_KEY, JSON.stringify(current.filter((item) => item.id !== id)));
+  },
 };
 
 const tauriRepository: SiftRepository = {
@@ -38,6 +43,7 @@ const tauriRepository: SiftRepository = {
   updateTransaction: (item) => invoke("update_transaction", { item }),
   listRules: async () => (await invoke<Array<MerchantRule & { matchKind: "contains" | "exact"; matchValue: string }>>("list_rules")).map((rule) => ({ ...rule, match: { kind: rule.matchKind, value: rule.matchValue } })),
   saveRule: (rule) => invoke("save_rule", { rule: { ...rule, matchKind: rule.match.kind, matchValue: rule.match.value } }),
+  deleteRule: (id) => invoke("delete_rule", { id }),
 };
 
 export const repository = "__TAURI_INTERNALS__" in window ? tauriRepository : browserRepository;

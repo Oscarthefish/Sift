@@ -15,6 +15,8 @@ Sift is a private desktop utility, not an “AI finance” product. Its calculat
 - Remembering merchant decisions as editable rules for future imports.
 - Detecting transfers between your own accounts and excluding them from spending.
 - Showing category totals, month-to-month trends and potential monthly/yearly savings.
+- Navigating imported months and comparing Personal/Haven spending over time.
+- Reviewing transfer suggestions before confirming their exclusion.
 - Adding optional, strictly local Ollama commentary to deterministic analysis.
 
 ## Privacy model
@@ -77,11 +79,9 @@ The eventual local database will be important user data. Sift will support expli
 ## Roadmap
 
 1. Validate import mapping against anonymised variants of Westpac's current exports.
-2. Add month navigation and multi-month trend comparisons.
-3. Add rule editing/deletion and explainable transfer suggestions before confirmation.
-4. Add optional Ollama commentary with an explicit local-only status.
-5. Introduce budgets and calm visual over-budget signals after the analysis workflow is proven.
-6. Add encrypted backup/restore and broader accessibility testing.
+2. Add optional Ollama commentary with an explicit local-only status.
+3. Introduce budgets and calm visual over-budget signals after the analysis workflow is proven.
+4. Add encrypted backup/restore and broader accessibility testing.
 
 ## Licence and status
 

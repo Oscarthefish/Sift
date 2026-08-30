@@ -12,7 +12,7 @@ This split keeps the calculation layer easy to test while making the privacy bou
 2. An account-specific importer maps source columns into canonical transaction rows.
 3. Normalisation creates merchant labels and stable fingerprints for duplicate prevention.
 4. Rules apply categories, freeform tags and Personal/Haven context.
-5. Transfer detection proposes equal-and-opposite cross-account matches for exclusion. User decisions remain reversible.
+5. Transfer detection proposes equal-and-opposite cross-account matches within three days. Nothing is excluded until the user confirms individual pairs, and decisions remain reversible.
 6. SQLite persists canonical transactions, rules and review decisions in the OS application-data directory. A stable source fingerprint prevents duplicate rows.
 7. Deterministic selectors produce spending totals, trends and savings scenarios.
 8. If enabled, a local Ollama adapter receives only an aggregated summary and returns commentary. Raw statement rows are not required.
