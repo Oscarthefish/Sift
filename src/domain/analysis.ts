@@ -1,6 +1,24 @@
 import type { Category, Transaction } from "./types";
 
 export interface CategorySpend { id: string; name: string; colour: string; amount: number; share: number }
+export interface MonthlySpend { month: string; personal: number; haven: number; total: number }
+
+export function availableMonths(transactions: Transaction[]): string[] {
+  return [...new Set(transactions.map((item) => item.postedAt.slice(0, 7)))].sort().reverse();
+}
+
+export function inMonth(transactions: Transaction[], month: string): Transaction[] {
+  return transactions.filter((item) => item.postedAt.startsWith(month));
+}
+
+export function monthlySpend(transactions: Transaction[]): MonthlySpend[] {
+  return availableMonths(transactions).map((month) => {
+    const rows = inMonth(transactions, month).filter((item) => item.amount < 0 && !item.excludedFromSpending);
+    const personal = rows.filter((item) => item.context === "personal").reduce((sum, item) => sum + Math.abs(item.amount), 0);
+    const haven = rows.filter((item) => item.context === "haven").reduce((sum, item) => sum + Math.abs(item.amount), 0);
+    return { month, personal, haven, total: personal + haven };
+  });
+}
 
 export function categorySpend(
   transactions: Transaction[],

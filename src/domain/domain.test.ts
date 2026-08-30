@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { parseWestpacCsv } from "./importers/westpac";
 import { merchantName, prepareImport } from "./ingest";
 import { applyMerchantRules } from "./rules";
-import { detectTransfers } from "./transfers";
+import { detectTransfers, suggestTransfers } from "./transfers";
+import { availableMonths, monthlySpend } from "./analysis";
 import type { Transaction } from "./types";
 
 const transaction = (id: string, accountId: string, amount: number, postedAt = "2026-08-01"): Transaction => ({
@@ -40,5 +41,29 @@ describe("transfer detection", () => {
   it("excludes equal and opposite movements between accounts", () => {
     const result = detectTransfers([transaction("out", "cheque", -500), transaction("in", "card", 500, "2026-08-02")]);
     expect(result.every((item) => item.excludedFromSpending)).toBe(true);
+  });
+
+  it("proposes pairs without changing their state", () => {
+    const rows = [transaction("out", "cheque", -500), transaction("in", "card", 500, "2026-08-02")];
+    const suggestions = suggestTransfers(rows);
+    expect(suggestions).toHaveLength(1);
+    expect(rows.every((item) => !item.excludedFromSpending)).toBe(true);
+  });
+
+  it("can match an incoming row initially marked as income", () => {
+    const incoming = { ...transaction("in", "card", 500, "2026-08-02"), excludedFromSpending: true, exclusionReason: "income" as const };
+    expect(suggestTransfers([transaction("out", "cheque", -500), incoming])).toHaveLength(1);
+  });
+});
+
+describe("monthly analysis", () => {
+  it("orders months newest-first and separates personal from Haven", () => {
+    const august = transaction("aug", "card", -100, "2026-08-02");
+    const july = { ...transaction("jul", "card", -40, "2026-07-02"), context: "haven" as const };
+    expect(availableMonths([july, august])).toEqual(["2026-08", "2026-07"]);
+    expect(monthlySpend([july, august])).toEqual([
+      { month: "2026-08", personal: 100, haven: 0, total: 100 },
+      { month: "2026-07", personal: 0, haven: 40, total: 40 },
+    ]);
   });
 });
