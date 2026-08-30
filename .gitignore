@@ -20,6 +20,8 @@ config/local.*
 # Private financial inputs and generated artefacts
 statements/
 data/
+!src/data/
+!src/data/**
 imports/
 backups/
 reports/
