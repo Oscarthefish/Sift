@@ -1,0 +1,17 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Sift",
+  "version": "0.1.0",
+  "identifier": "nz.co.sift.app",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [{ "title": "Sift", "width": 1280, "height": 820, "minWidth": 1024, "minHeight": 700 }],
+    "security": { "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:11434" }
+  },
+  "bundle": { "active": true, "targets": "all" }
+}

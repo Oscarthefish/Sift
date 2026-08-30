@@ -1,0 +1,53 @@
+# Dependencies and build output
+node_modules/
+dist/
+target/
+src-tauri/target/
+src-tauri/gen/
+*.log
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+.DS_Store
+
+# Local environment and machine-specific configuration
+.env
+.env.*
+!.env.example
+*.local
+config/local.*
+
+# Private financial inputs and generated artefacts
+statements/
+data/
+imports/
+backups/
+reports/
+exports/
+*.csv
+*.ofx
+*.qif
+*.pdf
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# User-owned classification data
+merchant-rules*.json
+categories*.json
+tags*.json
+local-settings*.json
+
+# Keep only explicitly safe fixtures
+!fixtures/
+!fixtures/**
+!src/**/fixtures/
+!src/**/fixtures/**
+
+# Editor files
+.idea/
+.vscode/*
+!.vscode/extensions.json
