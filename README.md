@@ -4,7 +4,7 @@
 
 Sift is a private desktop utility, not an “AI finance” product. Its calculations are deterministic. Optional Ollama commentary can explain trends in plain language, but the app remains fully useful with AI switched off.
 
-> Sift is at an early scaffold stage. The interface currently uses conspicuously fake demonstration data. Do not rely on it for financial decisions yet.
+> Sift is in active development. Statement import, local persistence and review are working, but do not rely on it as your only financial record.
 
 ## What Sift is for
 
@@ -34,7 +34,7 @@ If sensitive data was ever committed, deleting the working file is not enough; a
 
 ## Supported imports
 
-The first importer targets Westpac CSV exports for standard cheque/everyday accounts and credit-card accounts. The parser accepts common date, description, amount, debit, credit and balance headings. The sample files in `fixtures/` are invented and exist solely for development. Real exports belong outside the repository (a local `statements/` directory is ignored if you choose to use one).
+The first importer targets Westpac CSV exports for standard cheque/everyday accounts and credit-card accounts. The parser accepts common date, description, amount, debit, credit and balance headings. It previews normalised rows before saving and uses stable source fingerprints to skip duplicate imports. The sample files in `fixtures/` are invented and exist solely for development. Real exports belong outside the repository (a local `statements/` directory is ignored if you choose to use one).
 
 PDF, OFX and automatic bank connections are intentionally out of scope for the initial version.
 
@@ -52,7 +52,7 @@ Use `npm run dev` for quick interface work, or `npm run tauri dev` to run the de
 
 ## Architecture
 
-Sift uses a Tauri desktop shell, a React/TypeScript interface and pure domain modules for importing, classification and analysis. The native boundary will own filesystem access and SQLite persistence. This keeps the product maintainable and gives privacy-sensitive capabilities one narrow, auditable home.
+Sift uses a Tauri desktop shell, a React/TypeScript interface and pure domain modules for importing, classification and analysis. The native boundary owns a migrated SQLite database in Tauri's operating-system application-data directory. This keeps the product maintainable and gives privacy-sensitive capabilities one narrow, auditable home. Browser-only development uses local storage; the packaged desktop app uses SQLite.
 
 See [the architecture decision](docs/architecture.md) for the data flow, module boundaries, persistence plan and privacy guardrails.
 
@@ -76,14 +76,12 @@ The eventual local database will be important user data. Sift will support expli
 
 ## Roadmap
 
-1. Complete resilient Westpac import mapping, preview and duplicate detection.
-2. Add SQLite migrations and repositories in the native boundary.
-3. Build the transaction review queue, category/tag editor and merchant-rule controls.
-4. Add reversible transfer and credit-card-payment matching.
-5. Add historical trends, Personal/Haven filters and savings scenarios.
-6. Add optional Ollama commentary with an explicit local-only status.
-7. Introduce budgets and calm visual over-budget signals after the analysis workflow is proven.
-8. Add encrypted backup/restore and broader accessibility testing.
+1. Validate import mapping against anonymised variants of Westpac's current exports.
+2. Add month navigation and multi-month trend comparisons.
+3. Add rule editing/deletion and explainable transfer suggestions before confirmation.
+4. Add optional Ollama commentary with an explicit local-only status.
+5. Introduce budgets and calm visual over-budget signals after the analysis workflow is proven.
+6. Add encrypted backup/restore and broader accessibility testing.
 
 ## Licence and status
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseWestpacCsv } from "./importers/westpac";
+import { merchantName, prepareImport } from "./ingest";
 import { applyMerchantRules } from "./rules";
 import { detectTransfers } from "./transfers";
 import type { Transaction } from "./types";
@@ -13,6 +14,15 @@ describe("Westpac imports", () => {
   it("handles separate debit and credit columns", () => {
     const result = parseWestpacCsv("Date,Description,Debit,Credit,Balance\n28/08/2026,Shop,12.50,,100", "cheque");
     expect(result.transactions[0].amount).toBe(-12.5);
+  });
+
+  it("normalises dates, merchants and repeated-row fingerprints", () => {
+    const rows = [{ date: "28/08/2026", description: "VISA DAILY BREAD NZ", amount: -14.8 }, { date: "28/08/2026", description: "VISA DAILY BREAD NZ", amount: -14.8 }];
+    const result = prepareImport(rows, "credit-card", []);
+    expect(result[0].postedAt).toBe("2026-08-28");
+    expect(result[0].merchant).toBe("Daily Bread");
+    expect(result[0].sourceFingerprint).not.toBe(result[1].sourceFingerprint);
+    expect(merchantName("EFTPOS NEW WORLD NEW ZEALAND")).toBe("New World");
   });
 });
 
