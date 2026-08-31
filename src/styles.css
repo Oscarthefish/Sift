@@ -146,6 +146,7 @@ h2 { font-size: 24px; }
 .import-preview b { text-align: right; }
 .import-preview > small { display: block; color: #89877e; margin-top: 8px; }
 .inline-error { color: #a04f36; font-size: 11px; }
+.inline-warning { color: #86661b; background: #efe5c8; border-left: 3px solid #d9a441; padding: 9px 11px; font-size: 10px; line-height: 1.45; }
 .transfer-pairs { border-top: 1px solid #d6d1c6; margin-top: 22px; }
 .transfer-pair { display: grid; grid-template-columns: 25px 1fr; padding: 16px 4px; border-bottom: 1px solid #d6d1c6; }
 .transfer-pair > span { display: grid; gap: 3px; }

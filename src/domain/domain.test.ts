@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseWestpacCsv } from "./importers/westpac";
+import { parseWestpacPdfLines, type PdfLine } from "./importers/westpac-pdf";
 import { merchantName, prepareImport } from "./ingest";
 import { applyMerchantRules } from "./rules";
 import { detectTransfers, suggestTransfers } from "./transfers";
@@ -15,6 +16,27 @@ describe("Westpac imports", () => {
   it("handles separate debit and credit columns", () => {
     const result = parseWestpacCsv("Date,Description,Debit,Credit,Balance\n28/08/2026,Shop,12.50,,100", "cheque");
     expect(result.transactions[0].amount).toBe(-12.5);
+  });
+
+  it("reads explicit withdrawal and deposit columns from PDF text", () => {
+    const line = (text: string, values: Array<[string, number]>, y: number): PdfLine => ({ text, page: 1, tokens: values.map(([token, x]) => ({ text: token, x, y })) });
+    const result = parseWestpacPdfLines([
+      line("Statement period 1 August 2026", [["Statement period 1 August 2026", 20]], 700),
+      line("Date Details Withdrawals Deposits Balance", [["Date", 20], ["Details", 90], ["Withdrawals", 300], ["Deposits", 390], ["Balance", 470]], 650),
+      line("2 Aug SAMPLE CAFE 12.50 987.50", [["2 Aug", 20], ["SAMPLE CAFE", 90], ["12.50", 300], ["987.50", 470]], 620),
+      line("3 Aug SAMPLE SALARY 500.00 1487.50", [["3 Aug", 20], ["SAMPLE SALARY", 90], ["500.00", 390], ["1487.50", 470]], 600),
+    ], "cheque");
+    expect(result.transactions.map((item) => item.amount)).toEqual([-12.5, 500]);
+    expect(result.transactions[0].date).toBe("02/08/2026");
+  });
+
+  it("treats credit-card purchases as spending and CR rows as credits", () => {
+    const rows: PdfLine[] = [
+      { text: "Statement 2026", page: 1, tokens: [{ text: "Statement 2026", x: 20, y: 700 }] },
+      { text: "5 Aug SAMPLE SHOP 24.90", page: 1, tokens: [{ text: "5 Aug", x: 20, y: 600 }, { text: "SAMPLE SHOP", x: 100, y: 600 }, { text: "24.90", x: 450, y: 600 }] },
+      { text: "6 Aug PAYMENT 100.00 CR", page: 1, tokens: [{ text: "6 Aug", x: 20, y: 580 }, { text: "PAYMENT", x: 100, y: 580 }, { text: "100.00 CR", x: 450, y: 580 }] },
+    ];
+    expect(parseWestpacPdfLines(rows, "credit-card").transactions.map((item) => item.amount)).toEqual([-24.9, 100]);
   });
 
   it("normalises dates, merchants and repeated-row fingerprints", () => {

@@ -8,7 +8,7 @@ Sift is a private desktop utility, not an “AI finance” product. Its calculat
 
 ## What Sift is for
 
-- Importing Westpac NZ cheque-account and credit-card CSV exports.
+- Importing text-based Westpac NZ PDF statements and CSV exports for cheque and credit-card accounts.
 - Reviewing, correcting and categorising transactions efficiently.
 - Combining hierarchical categories with freeform tags.
 - Separating `Personal` and `Haven` business expenses.
@@ -36,9 +36,11 @@ If sensitive data was ever committed, deleting the working file is not enough; a
 
 ## Supported imports
 
-The first importer targets Westpac CSV exports for standard cheque/everyday accounts and credit-card accounts. The parser accepts common date, description, amount, debit, credit and balance headings. It previews normalised rows before saving and uses stable source fingerprints to skip duplicate imports. The sample files in `fixtures/` are invented and exist solely for development. Real exports belong outside the repository (a local `statements/` directory is ignored if you choose to use one).
+The importers target Westpac PDF statements and CSV exports for standard cheque/everyday accounts and credit-card accounts. PDF extraction happens locally in the app. Sift previews normalised rows before saving, warns when transaction direction had to be inferred, and uses stable source fingerprints to skip duplicate imports. Image-only scanned PDFs need OCR and are rejected rather than guessed.
 
-PDF, OFX and automatic bank connections are intentionally out of scope for the initial version.
+The sample files in `fixtures/` are invented and exist solely for development. Real statements belong outside the repository (a local `statements/` directory is ignored if you choose to use one). When online banking is available, Westpac also provides an **Export transactions** option; CSV remains the most reliable format because it has explicit columns.
+
+OFX and automatic bank connections are intentionally out of scope for the initial version.
 
 ## Development
 
