@@ -3,6 +3,7 @@ import { ArrowDownToLine, Check, ChevronLeft, ChevronRight, CircleHelp, FileText
 import { availableMonths, categorySpend, inMonth, monthlySpend, savingsOpportunities } from "./domain/analysis";
 import { prepareImport } from "./domain/ingest";
 import { parseWestpacCsv } from "./domain/importers/westpac";
+import { installPdfCompatibility } from "./domain/importers/pdf-compat";
 import { learnMerchantRule } from "./domain/rules";
 import { suggestTransfers, type TransferSuggestion } from "./domain/transfers";
 import type { AccountKind, MerchantRule, Transaction } from "./domain/types";
@@ -145,9 +146,11 @@ function ImportDialog({ rules, fileRef, onClose, onComplete }: { rules: Merchant
   useEffect(() => {
     if (!file) return;
     setPrepared([]); setWarnings([]); setError("");
-    const parseFile = async () => file.name.toLowerCase().endsWith(".pdf")
-      ? (await import("./domain/importers/westpac-pdf")).parseWestpacPdf(file, accountKind)
-      : parseWestpacCsv(await file.text(), accountKind);
+    const parseFile = async () => {
+      if (!file.name.toLowerCase().endsWith(".pdf")) return parseWestpacCsv(await file.text(), accountKind);
+      installPdfCompatibility();
+      return (await import("./domain/importers/westpac-pdf")).parseWestpacPdf(file, accountKind);
+    };
     parseFile().then((result) => { setWarnings(result.warnings); setPrepared(prepareImport(result.transactions, accountKind, rules)); }).catch((reason) => { setPrepared([]); setError(reason instanceof Error ? reason.message : String(reason)); });
   }, [file, accountKind, rules]);
   return <div className="modal-backdrop" role="presentation"><section className="modal" role="dialog" aria-modal="true" aria-labelledby="import-title"><button className="modal-close" onClick={onClose}><X size={18} /></button><p className="eyebrow">Private local import</p><h2 id="import-title">Add a Westpac statement</h2><p>Choose a PDF statement or CSV transaction export. The file is read in memory; Sift stores normalised transactions, not a copy.</p><div className="account-choice"><button className={accountKind === "cheque" ? "selected" : ""} onClick={() => setAccountKind("cheque")}>Cheque account</button><button className={accountKind === "credit-card" ? "selected" : ""} onClick={() => setAccountKind("credit-card")}>Credit card</button></div><input ref={fileRef} type="file" accept=".csv,.pdf,text/csv,application/pdf" hidden onChange={(event) => { setError(""); setFile(event.target.files?.[0] ?? null); }} /><button className="file-picker" onClick={() => fileRef.current?.click()}><FileText size={20} /><span><strong>{file?.name ?? "Choose a PDF or CSV"}</strong><small>{file ? `${prepared.length} readable transactions` : "Westpac statement or transaction export"}</small></span><ChevronRight size={18} /></button>{error && <p className="inline-error">{error}</p>}{warnings.map((warning) => <p className="inline-warning" key={warning}>{warning} Check the preview carefully.</p>)}{prepared.length > 0 && <div className="import-preview">{prepared.slice(0, 4).map((item) => <div key={item.id}><span>{item.postedAt}</span><strong>{item.merchant}</strong><b className={item.amount > 0 ? "positive" : ""}>{item.amount > 0 ? "+" : "-"}{money.format(Math.abs(item.amount))}</b></div>)}{prepared.length > 4 && <small>and {prepared.length - 4} more…</small>}</div>}<div className="modal-actions"><button onClick={onClose}>Cancel</button><button className="primary" disabled={!prepared.length || saving} onClick={async () => { setSaving(true); try { await onComplete(await repository.importTransactions(prepared)); } catch (reason) { setError(String(reason)); setSaving(false); } }}>{saving ? "Importing…" : `Import ${prepared.length || ""} transactions`}</button></div></section></div>;

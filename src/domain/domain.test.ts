@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseWestpacCsv } from "./importers/westpac";
 import { parseWestpacPdfLines, type PdfLine } from "./importers/westpac-pdf";
+import { installPdfCompatibility } from "./importers/pdf-compat";
 import { merchantName, prepareImport } from "./ingest";
 import { applyMerchantRules } from "./rules";
 import { detectTransfers, suggestTransfers } from "./transfers";
@@ -13,6 +14,16 @@ const transaction = (id: string, accountId: string, amount: number, postedAt = "
 });
 
 describe("Westpac imports", () => {
+  it("installs the WebKit features required by the PDF engine", async () => {
+    const prototype = ReadableStream.prototype as ReadableStream<unknown> & { [Symbol.asyncIterator]?: unknown };
+    Object.defineProperty(prototype, Symbol.asyncIterator, { configurable: true, writable: true, value: undefined });
+    installPdfCompatibility();
+    expect(typeof (Promise as PromiseConstructor & { withResolvers?: unknown }).withResolvers).toBe("function");
+    expect(typeof prototype[Symbol.asyncIterator]).toBe("function");
+    const stream = new ReadableStream<string>({ start(controller) { controller.enqueue("ready"); controller.close(); } }) as ReadableStream<string> & { [Symbol.asyncIterator](): AsyncIterator<string> };
+    const iterator = stream[Symbol.asyncIterator]();
+    await expect(iterator.next()).resolves.toMatchObject({ value: "ready", done: false });
+  });
   it("handles separate debit and credit columns", () => {
     const result = parseWestpacCsv("Date,Description,Debit,Credit,Balance\n28/08/2026,Shop,12.50,,100", "cheque");
     expect(result.transactions[0].amount).toBe(-12.5);
